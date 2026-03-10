@@ -1,0 +1,14 @@
+{
+    "name": "ibe-demo-backend",
+    "version": "1.0.0",
+    "description": "Demo booking engine backend for Apaleo",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "axios": "^1.13.6",
+        "dotenv": "^16.6.1",
+        "express": "^4.22.1"
+    }
+}
