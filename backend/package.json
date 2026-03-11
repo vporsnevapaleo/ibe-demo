@@ -1,14 +1,24 @@
 {
     "name": "ibe-demo-backend",
     "version": "1.0.0",
-    "description": "Demo booking engine backend for Apaleo",
+    "description": "Minimal demo booking engine backend using apaleo and Adyen",
     "main": "index.js",
     "scripts": {
-        "start": "node index.js"
+      "start": "node index.js",
+      "dev": "node index.js"
     },
+    "keywords": [
+      "apaleo",
+      "adyen",
+      "booking-engine",
+      "ibe",
+      "demo"
+    ],
+    "license": "MIT",
     "dependencies": {
-        "axios": "^1.13.6",
-        "dotenv": "^16.6.1",
-        "express": "^4.22.1"
+      "@adyen/api-library": "^30.1.0",
+      "axios": "^1.13.6",
+      "dotenv": "^16.6.1",
+      "express": "^4.22.1"
     }
-}
+  }
