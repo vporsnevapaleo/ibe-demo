@@ -1,17 +1,189 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Demo Booking Engine</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>IBE Demo – apaleo + Adyen</title>
+
+  <!--
+    Basic styling for the demo UI.
+    The goal of this project is not visual design, but demonstrating
+    the booking and payment flow.
+  -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!--
+    Adyen Web SDK (Drop-in)
+
+    This library renders the secure payment form in the browser.
+    Card details never pass through our frontend or backend directly.
+  -->
+  <link
+    rel="stylesheet"
+    href="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/6.17.0/adyen.css"
+  />
+
+  <script
+    src="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/6.17.0/adyen.js"
+    crossorigin="anonymous"
+  ></script>
 </head>
+
 <body>
-  <h1>Demo Booking Engine</h1>
-  <form id="booking-form">
-    <label>Date: <input type="date" name="date" required></label><br>
-    <label>Adults: <input type="number" name="adults" min="1" required></label><br>
-    <label>Last Name: <input type="text" name="lastName" required></label><br>
-    <button type="submit">Book</button>
-  </form>
-  <pre id="result"></pre>
+
+  <main class="container">
+
+    <h1>apaleo IBE Demo</h1>
+
+    <!--
+      Step 1 – Search offers
+
+      The user selects:
+      - property
+      - arrival / departure
+      - number of guests
+
+      The frontend then calls:
+      POST /api/offers/search
+
+      The backend proxies this to:
+      GET /booking/v1/offers
+    -->
+    <section class="card">
+
+      <h2>Search offers</h2>
+
+      <form id="search-form">
+
+        <label>
+          Property
+          <select name="propertyId" id="property-select" required>
+            <option value="">Loading properties...</option>
+          </select>
+        </label>
+
+        <label>
+          Arrival
+          <input type="date" name="arrival" required />
+        </label>
+
+        <label>
+          Departure
+          <input type="date" name="departure" required />
+        </label>
+
+        <label>
+          Adults
+          <input type="number" name="adults" min="1" value="1" required />
+        </label>
+
+        <button type="submit">
+          Search offers
+        </button>
+
+      </form>
+
+    </section>
+
+
+    <!--
+      Step 2 – Offer selection
+
+      After searching, the available offers are rendered here.
+      Each offer corresponds to a rate plan + unit group combination.
+    -->
+    <section class="card">
+
+      <h2>Offers</h2>
+
+      <div id="offers">
+        No offers loaded yet.
+      </div>
+
+    </section>
+
+
+    <!--
+      Step 3 – Guest details
+
+      After selecting an offer, the user enters traveler information.
+
+      apaleo requires at least:
+      - lastName
+
+      The rest is optional but typically included.
+    -->
+    <section class="card" id="guest-section" style="display: none;">
+
+      <h2>Guest details</h2>
+
+      <form id="guest-form">
+
+        <label>
+          First name
+          <input type="text" name="firstName" />
+        </label>
+
+        <label>
+          Last name
+          <input type="text" name="lastName" required />
+        </label>
+
+        <label>
+          Email
+          <input type="email" name="email" />
+        </label>
+
+        <label>
+          Phone
+          <input type="text" name="phone" />
+        </label>
+
+        <button type="submit">
+          Continue to payment
+        </button>
+
+      </form>
+
+    </section>
+
+
+    <!--
+      Step 4 – Payment
+
+      This section loads Adyen Drop-in and performs:
+
+      1) Payment authorization
+      2) Optional 3DS redirect flow
+      3) Booking creation in apaleo using PSP reference
+    -->
+    <section class="card" id="payment-section" style="display: none;">
+
+      <h2>Payment</h2>
+
+      <!-- summary of booking details -->
+      <div id="payment-summary"></div>
+
+      <!-- Adyen Drop-in will render here -->
+      <div id="dropin-container"></div>
+
+      <!-- payment + booking result -->
+      <div id="payment-result"></div>
+
+    </section>
+
+  </main>
+
+  <!--
+    Frontend application logic.
+    Handles:
+    - offer search
+    - offer selection
+    - payment flow
+    - booking creation
+  -->
   <script src="script.js"></script>
+
 </body>
 </html>
