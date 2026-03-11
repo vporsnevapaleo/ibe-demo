@@ -61,20 +61,21 @@ async function getProperties() {
  * property -> stay dates -> guests -> offers
  */
 async function searchOffers({ propertyId, arrival, departure, adults }) {
-  const headers = await getAuthHeaders();
-
-  const response = await axios.get(`${API_BASE_URL}/booking/v1/offers`, {
-    headers,
-    params: {
-      propertyId,
-      arrival,
-      departure,
-      adults,
-    },
-  });
-
-  return response.data.offers || [];
-}
+    const headers = await getAuthHeaders();
+  
+    const response = await axios.get(`${API_BASE_URL}/booking/v1/offers`, {
+      headers,
+      params: {
+        propertyId,
+        arrival,
+        departure,
+        adults,
+        channelCode: 'Ibe',
+      },
+    });
+  
+    return response.data.offers || [];
+  }
 
 /**
  * Maps the guest form into the basic apaleo guest shape used for:
@@ -105,7 +106,7 @@ function buildReservationFromOffer({ offer, searchCriteria, guest }) {
     arrival: searchCriteria.arrival,
     departure: searchCriteria.departure,
     adults: Number(searchCriteria.adults),
-    channelCode: 'Direct',
+    channelCode: 'Ibe',
 
     primaryGuest: buildGuestProfile(guest),
 
