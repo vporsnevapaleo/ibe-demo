@@ -527,14 +527,18 @@ async function renderPaymentResult(result) {
     <h3>Payment result</h3>
     <p><strong>Result code:</strong> ${escapeHtml(String(resultCode))}</p>
     <p><strong>PSP reference:</strong> ${escapeHtml(String(pspReference))}</p>
+
+    <details>
+      <summary>Adyen payment payload sent</summary>
+      <pre>${escapeHtml(JSON.stringify(result.debugPaymentPayload || {}, null, 2))}</pre>
+    </details>
+
     <details>
       <summary>Raw payment response</summary>
       <pre>${escapeHtml(JSON.stringify(result, null, 2))}</pre>
     </details>
   `;
 
-  // In this demo, booking creation starts automatically once the payment
-  // is authorized successfully.
   if (resultCode === 'Authorised' && latestPspReference && !bookingCreationInProgress) {
     bookingCreationInProgress = true;
 

@@ -72,7 +72,6 @@ async function makePayment({
   paymentMethod,
   reference,
   returnUrl,
-  browserInfo,
   shopperEmail,
   shopperReference,
   propertyId,
@@ -80,7 +79,7 @@ async function makePayment({
 }) {
   const checkout = createCheckoutClient();
 
-  return checkout.PaymentsApi.payments({
+  const adyenPayload = {
     merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT,
     amount,
     reference,
@@ -92,14 +91,40 @@ async function makePayment({
     deliveryDate: parseDeliveryDate(deliveryDate),
     shopperInteraction: 'Ecommerce',
     recurringProcessingModel: 'UnscheduledCardOnFile',
-
     additionalData: {
       'metadata.flowType': 'CaptureOnly',
       'metadata.accountId': process.env.APALEO_ACCOUNT_ID,
       'metadata.propertyId': propertyId,
       subMerchantID: process.env.APALEO_SUBMERCHANT_ID,
     },
-  });
+  };
+
+const response = await checkout.PaymentsApi.payments(adyenPayload);
+
+  const debugPayload = {
+    merchantAccount: adyenPayload.merchantAccount,
+    amount: adyenPayload.amount,
+    reference: adyenPayload.reference,
+    returnUrl: adyenPayload.returnUrl,
+    shopperEmail: adyenPayload.shopperEmail,
+    shopperReference: adyenPayload.shopperReference,
+    channel: adyenPayload.channel,
+    deliveryDate: deliveryDate || null,
+    shopperInteraction: adyenPayload.shopperInteraction,
+    storePaymentMethod: adyenPayload.storePaymentMethod,
+    recurringProcessingModel: adyenPayload.recurringProcessingModel,
+    additionalData: adyenPayload.additionalData,
+
+    paymentMethod: {
+      type: paymentMethod?.type || null,
+      brand: paymentMethod?.brand || null,
+    },
+  };
+
+  return {
+    paymentResponse: response,
+    paymentPayload: debugPayload,
+  };
 }
 
 /**

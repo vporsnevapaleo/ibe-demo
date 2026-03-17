@@ -238,7 +238,7 @@ app.post('/api/payments', async (req, res) => {
       deliveryDate,
     } = req.body;
 
-    const paymentResponse = await adyen.makePayment({
+    const result = await adyen.makePayment({
       amount,
       paymentMethod,
       browserInfo,
@@ -250,9 +250,19 @@ app.post('/api/payments', async (req, res) => {
       returnUrl: `${getRequestOrigin(req)}/`,
     });
 
-    res.send(paymentResponse);
+    res.send({
+      ...result.paymentResponse,
+      debugPaymentPayload: result.paymentPayload,
+    });
+
   } catch (error) {
-    sendErrorResponse(res, 'Payment failed', error);
+    console.error('Payment failed:');
+    console.error(error.response?.body || error.message);
+
+    res.status(500).send({
+      error: 'Payment failed',
+      details: error.response?.body || error.message,
+    });
   }
 });
 
