@@ -534,7 +534,7 @@ async function renderPaymentResult(result) {
     </details>
 
     <details>
-      <summary>Raw payment response</summary>
+      <summary>Raw Adyen payment response</summary>
       <pre>${escapeHtml(JSON.stringify(result, null, 2))}</pre>
     </details>
   `;
@@ -665,23 +665,23 @@ function renderBookingResult(result) {
     <p><strong>Attached to reservation:</strong> ${escapeHtml(String(reservationId))}</p>
 
     <details>
-      <summary>Raw booking response</summary>
-      <pre>${escapeHtml(JSON.stringify(result.booking, null, 2))}</pre>
-    </details>
-
-    <details>
       <summary>Booking payload sent</summary>
       <pre>${escapeHtml(JSON.stringify(result.bookingPayload, null, 2))}</pre>
     </details>
 
     <details>
-      <summary>Raw payment account response</summary>
-      <pre>${escapeHtml(JSON.stringify(result.paymentAccount, null, 2))}</pre>
+      <summary>Raw booking response</summary>
+      <pre>${escapeHtml(JSON.stringify(result.booking, null, 2))}</pre>
     </details>
 
     <details>
       <summary>Payment account payload sent</summary>
       <pre>${escapeHtml(JSON.stringify(result.paymentAccountPayload, null, 2))}</pre>
+    </details>
+
+    <details>
+      <summary>Raw payment account response</summary>
+      <pre>${escapeHtml(JSON.stringify(result.paymentAccount, null, 2))}</pre>
     </details>
   `;
 }
