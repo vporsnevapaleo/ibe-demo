@@ -2,6 +2,7 @@ const axios = require('axios');
 
 const API_BASE_URL = 'https://api.apaleo.com';
 const IDENTITY_URL = 'https://identity.apaleo.com/connect/token';
+const DEFAULT_CHANNEL_CODE = 'Ibe';
 
 /**
  * Requests an OAuth access token for apaleo using client credentials.
@@ -70,7 +71,7 @@ async function searchOffers({ propertyId, arrival, departure, adults }) {
         arrival,
         departure,
         adults,
-        channelCode: 'Ibe',
+        channelCode: DEFAULT_CHANNEL_CODE,
       },
     });
   
@@ -106,16 +107,12 @@ function buildReservationFromOffer({ offer, searchCriteria, guest }) {
     arrival: searchCriteria.arrival,
     departure: searchCriteria.departure,
     adults: Number(searchCriteria.adults),
-    channelCode: 'Ibe',
-
+    channelCode: DEFAULT_CHANNEL_CODE,
     primaryGuest: buildGuestProfile(guest),
-
     guaranteeType: offer.minGuaranteeType || undefined,
-
     timeSlices: (offer.timeSlices || []).map((timeSlice) => ({
       ratePlanId: timeSlice.ratePlan?.id || offer.ratePlan?.id,
     })),
-
     prePaymentAmount: offer.prePaymentAmount
       ? {
           amount: offer.prePaymentAmount.amount,
@@ -142,6 +139,61 @@ function buildBookingPayload({ offer, searchCriteria, guest, pspReference }) {
       }),
     ],
     transactionReference: pspReference,
+  };
+}
+
+/**
+ * Extracts Apaleo reservationId to add paymentAccount.
+ */
+function extractFirstReservationId(booking) {
+  if (!Array.isArray(booking.reservationIds)) {
+    return null;
+  }
+
+  const firstReservation = booking.reservationIds[0];
+
+  if (!firstReservation) {
+    return null;
+  }
+
+  if (typeof firstReservation === 'string') {
+    return firstReservation;
+  }
+
+  return firstReservation.id || null;
+}
+
+/**
+ * Creates paymentAccount on a reservation with PSP reference as a transactionReference.
+ */
+async function createPaymentAccountByAuthorization({
+  reservationId,
+  pspReference,
+}) {
+  const headers = await getAuthHeaders();
+
+  const payload = {
+    target: {
+      type: 'Reservation',
+      id: reservationId,
+    },
+    transactionReference: pspReference,
+  };
+
+  const response = await axios.post(
+    `${API_BASE_URL}/booking/v1/payment-accounts/by-authorization`,
+    payload,
+    {
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return {
+    paymentAccount: response.data,
+    payload,
   };
 }
 
@@ -178,9 +230,42 @@ async function createBooking({ offer, searchCriteria, guest, pspReference }) {
   };
 }
 
+async function createBookingWithPaymentAccount({
+  offer,
+  searchCriteria,
+  guest,
+  pspReference,
+}) {
+  const bookingResult = await createBooking({
+    offer,
+    searchCriteria,
+    guest,
+    pspReference,
+  });
+  
+  const reservationId = extractFirstReservationId(bookingResult.booking);
+
+  if (!reservationId) {
+    throw new Error('Booking was created, but no reservation ID was returned.');
+  }
+
+  const paymentAccountResult = await createPaymentAccountByAuthorization({
+    reservationId,
+    pspReference,
+  });
+
+  return {
+    booking: bookingResult.booking,
+    bookingPayload: bookingResult.payload,
+    reservationId,
+    paymentAccount: paymentAccountResult.paymentAccount,
+    paymentAccountPayload: paymentAccountResult.payload,
+  };
+}
+
 module.exports = {
   getProperties,
   searchOffers,
-  createBooking,
+  createBookingWithPaymentAccount,
   buildBookingPayload,
 };

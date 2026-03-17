@@ -631,7 +631,7 @@ Missing selectedOffer, searchCriteria, guestDetails, or latestPspReference.</pre
       throw new Error(JSON.stringify(json.details || json.error || json, null, 2));
     }
 
-    renderBookingResult(json.booking, json.payload);
+    renderBookingResult(json);
     clearCheckoutState();
   } catch (error) {
     paymentResult.innerHTML += `
@@ -641,32 +641,45 @@ ${escapeHtml(error.message)}</pre>
   }
 }
 
-function renderBookingResult(booking, payload) {
-    const bookingId = booking.id || booking.bookingId || 'n/a';
-  
-    const reservationIds = Array.isArray(booking.reservationIds)
-      ? booking.reservationIds.map((reservation) => reservation.id).filter(Boolean)
-      : [];
-  
-    const loadingElement = document.getElementById('booking-loading');
-    if (loadingElement) {
-      loadingElement.remove();
-    }
-  
-    paymentResult.innerHTML += `
-      <h3>Booking created</h3>
-      <p><strong>Booking ID:</strong> ${escapeHtml(String(bookingId))}</p>
-      <p><strong>Reservation IDs:</strong> ${escapeHtml(reservationIds.join(', ') || 'n/a')}</p>
-      <p><strong>Transaction reference:</strong> ${escapeHtml(String(latestPspReference))}</p>
-      <details>
-        <summary>Raw booking response</summary>
-        <pre>${escapeHtml(JSON.stringify(booking, null, 2))}</pre>
-      </details>
-      <details>
-        <summary>Booking payload sent</summary>
-        <pre>${escapeHtml(JSON.stringify(payload, null, 2))}</pre>
-      </details>
-    `;
+function renderBookingResult(result) {
+  const booking = result.booking;
+  const bookingId = booking.id || booking.bookingId || 'n/a';
+  const reservationId = result.reservationId || 'n/a';
+
+  const loadingElement = document.getElementById('booking-loading');
+  if (loadingElement) {
+    loadingElement.remove();
+  }
+
+  paymentResult.innerHTML += `
+    <h3>Booking created</h3>
+    <p><strong>Booking ID:</strong> ${escapeHtml(String(bookingId))}</p>
+    <p><strong>Reservation ID:</strong> ${escapeHtml(String(reservationId))}</p>
+    <p><strong>Transaction reference:</strong> ${escapeHtml(String(latestPspReference))}</p>
+
+    <h3>Payment account created</h3>
+    <p><strong>Attached to reservation:</strong> ${escapeHtml(String(reservationId))}</p>
+
+    <details>
+      <summary>Raw booking response</summary>
+      <pre>${escapeHtml(JSON.stringify(result.booking, null, 2))}</pre>
+    </details>
+
+    <details>
+      <summary>Booking payload sent</summary>
+      <pre>${escapeHtml(JSON.stringify(result.bookingPayload, null, 2))}</pre>
+    </details>
+
+    <details>
+      <summary>Raw payment account response</summary>
+      <pre>${escapeHtml(JSON.stringify(result.paymentAccount, null, 2))}</pre>
+    </details>
+
+    <details>
+      <summary>Payment account payload sent</summary>
+      <pre>${escapeHtml(JSON.stringify(result.paymentAccountPayload, null, 2))}</pre>
+    </details>
+  `;
 }
 
 // -----------------------------------------------------------------------------

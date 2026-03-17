@@ -142,13 +142,14 @@ app.post('/api/offers/search', async (req, res) => {
 });
 
 /**
- * Creates a booking in apaleo after payment authorization succeeded.
+ * Creates a booking & paymentAccount in apaleo after payment authorization succeeded.
  *
  * The frontend sends:
  * - the selected offer
  * - the original search criteria
  * - the guest details
  * - the Adyen PSP reference
+ * - paymentAccount
  *
  * That PSP reference becomes transactionReference in the booking payload.
  */
@@ -165,7 +166,7 @@ app.post('/api/bookings/create', async (req, res) => {
       });
     }
 
-    const result = await apaleo.createBooking({
+    const result = await apaleo.createBookingWithPaymentAccount({
       offer,
       searchCriteria,
       guest,
@@ -175,7 +176,10 @@ app.post('/api/bookings/create', async (req, res) => {
     res.send({
       success: true,
       booking: result.booking,
-      payload: result.payload,
+      bookingPayload: result.bookingPayload,
+      reservationId: result.reservationId,
+      paymentAccount: result.paymentAccount,
+      paymentAccountPayload: result.paymentAccountPayload,
     });
   } catch (error) {
     sendErrorResponse(res, 'Booking creation failed', error);
